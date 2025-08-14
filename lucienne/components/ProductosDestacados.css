@@ -1,0 +1,34 @@
+.productos {
+  background: red;
+  color: white;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.productos h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.producto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.imagen {
+  width: 100%;
+  aspect-ratio: 1/1.2;
+  background-size: cover;
+  background-position: center;
+  border-radius: 0.5rem;
+  clip-path: inset(0% 0% 0% 0% round 10px); /* máscara simple */
+  background-color: #ccc;
+  margin-bottom: 0.5rem;
+}

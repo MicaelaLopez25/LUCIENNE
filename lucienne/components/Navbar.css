@@ -1,0 +1,88 @@
+/* lo que rompe es esto */
+.navbar {
+  background: red;
+  color: white;
+  padding: 1rem;
+}
+
+.logo {
+  font-size: 2rem;
+  font-weight: bold;
+  border-bottom: 2px solid white;
+  padding-bottom: 0.3rem;
+}
+
+.menu-toggle {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  display: block;
+}
+
+.menu {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  text-align: center;
+  background-color: red;
+
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+}
+
+.menu.open {
+  display: flex;
+}
+
+.menu a {
+  color: white;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+@media (min-width: 768px) {
+  .navbar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 4rem;
+    border-bottom: 2px solid white;
+    padding-bottom: 0.3rem;
+  }
+
+  .menu-toggle {
+    display: none;
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: row;
+    position: static;
+    background-color: transparent;
+    width: auto;
+    gap: 1rem;
+  }
+
+  .menu a {
+    border-top: none;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .iconos {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+}
+/* iconos solo es absolute */
