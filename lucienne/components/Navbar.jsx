@@ -19,12 +19,12 @@ export default function Navbar() {
         <span>🛒</span>
       </div>
       {/* Botón para móviles */}
-      <button className={styles.menu} onClick={toggleMenu}>
+      <button className={styles["menu-toggle"]} onClick={toggleMenu}>
         ☰
       </button>
 
       {/* El menú de navegación usa la clase condicional */}
-      <nav className={`${styles.menu} ${isMenuOpen ? `${styles.open}` : ""}`}>
+      <nav className={`${styles.menu} ${isMenuOpen ? styles.open : ""}`}>
         <Link href="/">INICIO</Link>
         <Link href="/">CONTACTO</Link>
         <Link href="/productos">PRODUCTOS</Link>

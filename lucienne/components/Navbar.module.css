@@ -1,8 +1,12 @@
-/* lo que rompe es esto */
+/* Estilos para dispositivos móviles (por defecto) */
 .navbar {
   background: red;
   color: white;
   padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
 }
 
 .logo {
@@ -18,16 +22,15 @@
   color: white;
   font-size: 2rem;
   cursor: pointer;
-  display: block;
+  display: block; /* Muestra el botón de hamburguesa en móvil */
 }
 
 .menu {
-  display: none;
+  display: none; /* Oculta el menú por defecto */
   flex-direction: column;
   width: 100%;
   text-align: center;
   background-color: red;
-
   position: absolute;
   top: 100%;
   left: 0;
@@ -35,7 +38,7 @@
 }
 
 .menu.open {
-  display: flex;
+  display: flex; /* Muestra el menú cuando tiene la clase 'open' */
 }
 
 .menu a {
@@ -46,12 +49,19 @@
   border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.iconos {
+  display: flex; /* Cambiado a flex para mostrar los iconos en móvil */
+  gap: 0.5rem; /* Opcional: añade espacio entre los iconos */
+}
+
+/* Estilos para pantallas grandes (desktop) */
 @media (min-width: 768px) {
   .navbar {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Alinea los elementos en una columna */
     justify-content: center;
     align-items: center;
+    padding: 1.5rem;
   }
 
   .logo {
@@ -61,12 +71,12 @@
   }
 
   .menu-toggle {
-    display: none;
+    display: none; /* Oculta el botón de hamburguesa en desktop */
   }
 
   .menu {
-    display: flex;
-    flex-direction: row;
+    display: flex; /* Muestra el menú en desktop */
+    flex-direction: row; /* Coloca los enlaces en una fila */
     position: static;
     background-color: transparent;
     width: auto;
@@ -81,8 +91,8 @@
 
   .iconos {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: block; /* Muestra los iconos en desktop */
   }
 }
-/* iconos solo es absolute */
