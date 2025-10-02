@@ -17,7 +17,7 @@
     "codegen": "npx playwright codegen"
   },
   "dependencies": {
-    "@prisma/client": "^6.14.0",
+    "@prisma/client": "^6.16.3",
     "lucide-react": "^0.542.0",
     "next": "15.4.6",
     "react": "19.1.0",
@@ -25,11 +25,11 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "^1.55.1",
     "@types/node": "24.3.0",
     "@types/react": "19.1.10",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "prisma": "^6.14.0"
+    "prisma": "^6.16.3"
   }
 }

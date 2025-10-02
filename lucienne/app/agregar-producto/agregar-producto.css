@@ -1,0 +1,151 @@
+/*
+ * Estilos para el formulario de Agregar Producto
+ * Diseñado para replicar la imagen de referencia (Fondo rojo, inputs blancos)
+ */
+
+body {
+  margin: 0;
+  background-color: #f7f7f7; /* Fondo general para la aplicación */
+  font-family: "Inter", sans-serif;
+}
+
+/* Contenedor principal del formulario */
+.form-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 0;
+  width: 100%;
+}
+
+/* El card del formulario (todo lo que está en rojo en la imagen) */
+.add-product-card {
+  width: 100%; /* Ocupa todo el ancho en móvil */
+  max-width: 450px; /* Ancho máximo en desktop/tablet */
+  background-color: #ff0000; /* Fondo rojo vibrante */
+  color: white;
+  padding: 20px 25px 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header (Icono de cerrar y título) */
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 25px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 15px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.form-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Controles de formulario (campos de texto) */
+.form-control {
+  margin-bottom: 30px;
+}
+
+.input-label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.input-group {
+  background-color: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.text-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  color: #333;
+  padding: 0;
+  background: transparent;
+}
+
+/* Placeholder personalizado (ej: campera de espuma, 5000) */
+.text-input::placeholder {
+  color: #aaa;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Estilo para el campo de imagen (placeholder cuadrado gris) */
+.image-placeholder {
+  width: 120px;
+  height: 120px;
+  background-color: #cccccc; /* Gris del placeholder */
+  border-radius: 18px;
+  margin: 0 auto 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Botón de envío */
+.submit-btn {
+  background-color: white;
+  color: #ff0000; /* Texto rojo en botón blanco */
+  border: none;
+  padding: 15px 20px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  margin-top: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.submit-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Contenedor de mensajes de estado */
+.status-message {
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 20px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.success {
+  background-color: #4caf50; /* Verde */
+  color: white;
+}
+
+.error {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
