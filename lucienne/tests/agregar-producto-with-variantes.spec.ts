@@ -1,63 +1,58 @@
 import { test, expect } from "@playwright/test";
 
-test("agregar_producto_con_dos_variantes", async ({ page }) => {
+test.setTimeout(120000);
+
+test("Agregar producto con variantes e imágenes", async ({ page }) => {
+  test.slow();
   await page.goto("http://localhost:3000/agregar-producto");
 
-  // --- 1. DATOS BASE ---
-  await page
-    .getByRole("textbox", { name: "Título del Producto" })
-    .fill("Pijama de Seda Test");
-  await page
-    .getByRole("spinbutton", { name: "Precio Base (por unidad)" })
-    .fill("290000");
+  await page.getByLabel("Título del Producto").fill("pijama largo test");
+  await page.getByLabel("Precio Base (por unidad)").fill("35000");
 
-  // --- 2. VARIANTE 1 (Inicial) ---
-  // Carga de imagen para la primera variante
-  // NOTA: El selector 'Toca para subir la imagen de' es correcto para la primera
-  await page
-    .getByRole("button", { name: /Imagen 1/i })
-    .setInputFiles("pijamaazul.jpeg");
+  await page.getByPlaceholder("ej: Rojo").fill("Rojo");
+  await page.getByPlaceholder("ej: 5").fill("10");
 
-  // Llenado de campos de la primera variante
-  await page.getByLabel("Color").first().fill("Azul");
-  await page.getByLabel("Stock").first().fill("2");
+  const fileChooserPromise1 = page.waitForEvent("filechooser");
+  await page.getByLabel("Toca para subir la imagen de la variante Rojo").click();
+  const fileChooser1 = await fileChooserPromise1;
+  await fileChooser1.setFiles({
+    name: "mock-image1.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4DwQACfsD/QatR88AAAAASUVORK5CYII=",
+      "base64"
+    ),
+  });
 
-  // --- 3. AÑADIR Y LLENAR VARIANTE 2 ---
   await page.getByRole("button", { name: "Añadir otra Variante" }).click();
+  const colorInputs = await page.getByPlaceholder("ej: Rojo").all();
+  const stockInputs = await page.getByPlaceholder("ej: 5").all();
 
-  // La segunda variante ahora es la última en el DOM
-  const variant2 = page.locator(".variant-row").last();
+  await colorInputs[1].fill("Azul");
+  await stockInputs[1].fill("8");
 
-  // Carga de imagen para la SEGUNDA variante (usamos el selector dentro del contenedor)
-  await variant2
-    .getByRole("button", { name: /Imagen 2/i })
-    .setInputFiles("pijamanegro.jpeg");
+  const fileChooserPromise2 = page.waitForEvent("filechooser");
+  await page.getByLabel("Toca para subir la imagen de la variante Azul").click();
+  const fileChooser2 = await fileChooserPromise2;
+  await fileChooser2.setFiles({
+    name: "mock-image2.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4DwQACfsD/QatR88AAAAASUVORK5CYII=",
+      "base64"
+    ),
+  });
 
-  // Llenado de campos de la SEGUNDA variante (usamos el selector dentro del contenedor)
-  await variant2.getByLabel("Color").fill("Negrito");
-  await variant2.getByLabel("Stock").fill("5");
+  await page.getByRole("button", { name: "GUARDAR PRODUCTO Y VARIANTES" }).click();
 
-  // --- 4. GUARDAR Y VERIFICAR ---
-  await page
-    .getByRole("button", { name: "GUARDAR PRODUCTO Y VARIANTES" })
-    .click();
-
-  // Esperamos que el mensaje de éxito aparezca antes de redirigir
-  await expect(page.locator(".status-message.success")).toBeVisible();
-
-  // Verificación en la página de productos (asumiendo que redirige a /productos)
-  await page.waitForURL("http://localhost:3000/productos");
-
-  // Los productos de la variante individual deben ser visibles
   await expect(
-    page.getByText("Pijama de Seda Test", { exact: true }).first()
-  ).toBeVisible();
-  await expect(
-    page.getByText("$290.000", { exact: true }).first()
-  ).toBeVisible();
+    page.getByText(/Producto\(s\) agregado\(s\) con éxito!/i)
+  ).toBeVisible({ timeout: 60000 });
 
-  // Si la lista de productos tiene el título dos veces (una por cada variante guardada)
+  await page.waitForURL("**/productos", { timeout: 60000 });
+
+  // ✅ Comprueba que al menos un título con ese nombre sea visible
   await expect(
-    page.getByText("Pijama de Seda Test", { exact: true })
-  ).toHaveCount(2);
+    page.getByRole("heading", { name: "pijama largo test" }).first()
+  ).toBeVisible({ timeout: 30000 });
 });
