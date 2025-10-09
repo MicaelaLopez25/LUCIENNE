@@ -69,7 +69,10 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-
+  // Global setup for all tests.
+  globalSetup: "./tests/utils/global.setup.ts",
+  // Global teardown for all tests.
+  globalTeardown: "./tests/utils/global.teardown.ts",
   webServer: {
     command: "npm run dev",
     port: 3000,

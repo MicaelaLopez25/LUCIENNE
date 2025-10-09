@@ -31,14 +31,6 @@
   transform: translateY(-5px);
 }
 
-/* Icono carrito */
-.cart-icon {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  color: #000;
-}
-
 /* Imagen */
 .producto-img {
   width: 100%;
@@ -64,4 +56,55 @@
   font-weight: bold;
   color: #000;
   margin: 5px 0 0;
+}
+
+/* --- ESTILOS NUEVOS PARA EL BOTÓN --- */
+
+/* Contenedor del botón para alinear */
+.producto-card {
+  /* Se asegura que el contenido se distribuya verticalmente */
+  justify-content: space-between;
+}
+
+.agregar-carrito-btn {
+  display: block; /* Ocupa todo el ancho disponible */
+  width: calc(100% - 30px); /* Ancho total menos el padding lateral */
+  margin: 0 15px 15px 15px; /* Margen (arriba, derecha, abajo, izquierda) */
+  padding: 12px;
+  background-color: #e50914; /* Rojo brillante */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.agregar-carrito-btn:hover {
+  background-color: #f40612; /* Un rojo un poco más claro al pasar el mouse */
+}
+
+.producto-card.agotado {
+  opacity: 0.6;
+}
+
+.producto-card.agotado .agregar-carrito-btn {
+  pointer-events: none; /* Solo el botón de compra queda bloqueado */
+  background-color: #999;
+  cursor: not-allowed;
+}
+
+/* --- ESTILO NUEVO PARA EL STOCK --- */
+.producto-stock {
+  background-color: #e0e0e0; /* Fondo gris claro */
+  color: #000;
+  font-weight: bold;
+  padding: 8px 12px;
+  margin-top: 10px; /* Espacio entre el precio y el stock */
+  border-radius: 4px;
+  text-align: left; /* Alineado a la izquierda como en la foto */
+  font-size: 15px;
 }

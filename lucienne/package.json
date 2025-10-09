@@ -14,10 +14,10 @@
     "test": "npx playwright test",
     "test:report": "npx playwright show-report",
     "test:headed": "npx playwright test --headed",
-    "codegen": "npx playwright codegen"
+    "codegen": "node ./tests/utils/global.setup.codegen.ts && npx playwright codegen"
   },
   "dependencies": {
-    "@prisma/client": "^6.16.3",
+    "@prisma/client": "^6.17.0",
     "lucide-react": "^0.542.0",
     "next": "15.4.6",
     "react": "19.1.0",
@@ -30,6 +30,6 @@
     "@types/react": "19.1.10",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "prisma": "^6.16.3"
+    "prisma": "^6.17.0"
   }
 }
