@@ -27,26 +27,28 @@ export default function ProductosPage() {
         return;
       }
 
-      // PATCH para descontar 1 unidad (simulación de compra)
+      // 🔹 1. Crear la orden de pago con Mercado Pago
       const res = await fetch("/api/products", {
-        method: "PATCH",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productId, cantidad: 1 }),
+        body: JSON.stringify({
+          title: producto.title,
+          price: producto.price,
+        }),
       });
 
-      if (res.ok) {
-        const updated = await res.json();
-        setProductos((prev) =>
-          prev.map((p) => (p.id === updated.id ? updated : p))
-        );
-        alert("Compra realizada correctamente ✅");
+      const data = await res.json();
+      if (data.init_point) {
+        // 🔹 2. Redirigir al checkout de Mercado Pago
+        window.location.href = data.init_point;
+        return;
       } else {
-        const error = await res.json();
-        alert(error.error || "Error al comprar producto");
+        alert("No se pudo iniciar el pago con Mercado Pago.");
+        return;
       }
     } catch (error) {
       console.error(error);
-      alert("Error de conexión con el servidor");
+      alert("Error al conectar con el servidor o Mercado Pago");
     }
   };
 

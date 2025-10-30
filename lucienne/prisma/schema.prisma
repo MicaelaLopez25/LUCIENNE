@@ -11,7 +11,7 @@ model Product {
   id        Int      @id @default(autoincrement())
   title     String
   price     Float
-  color     String
+  color     String?
   stock     Int
   image     String?
   createdAt DateTime @default(now())
@@ -19,7 +19,7 @@ model Product {
 }
 
 model Order {
-  id                Int      @id @default(autoincrement())
+  id                String   @id @default(uuid())
   total             Float
   status            String   @default("PENDING")
   paymentId         String?  @unique
