@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       title: body.title,
       price: body.price,
       color: body.color,
-      stock: body.stock,
+      stock: Number(body.stock) || 0,
       image: body.image,
     },
   });

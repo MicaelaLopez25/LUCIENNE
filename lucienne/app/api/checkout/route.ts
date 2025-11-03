@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 import { prisma } from "@/lib/prisma";
-
 import * as z from "zod";
 
 const EsquemaDeLaOrdenCompra = z.object({
   nombre_del_producto: z.string(),
-  precio_del_producto: z.float32(),
+  precio_del_producto: z.number(), // mejor usar number en vez de float32
 });
 
 type OrdenDeCompra = z.infer<typeof EsquemaDeLaOrdenCompra>;
@@ -18,17 +17,25 @@ const client = new MercadoPagoConfig({
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const orden_de_compra = parsear_orden_de_compra(body);
 
-    const orden_de_compra = parsear_orden_de_compra(body)
-
-
-    const ordenDeCompraRegistrada = await registrar_orden_de_compra(orden_de_compra)
+    const ordenDeCompraRegistrada = await registrar_orden_de_compra(
+      orden_de_compra
+    );
 
     const HOST_URL =
       process.env.NEXT_PUBLIC_HOST_URL || "http://localhost:3000";
 
     const preferenceData = {
-      items: [ordenDeCompraRegistrada],
+      items: [
+        {
+          id: ordenDeCompraRegistrada.id.toString(), // ✅ agregado
+          title: orden_de_compra.nombre_del_producto,
+          quantity: 1,
+          unit_price: orden_de_compra.precio_del_producto,
+          currency_id: "ARS",
+        },
+      ],
       back_urls: {
         success: `${HOST_URL}/success`,
         failure: `${HOST_URL}/failure`,
@@ -52,31 +59,20 @@ export async function POST(request: Request) {
   }
 }
 
-const parsear_orden_de_compra = (
-  posible_orden_de_compra: any
-): OrdenDeCompra => {
+const parsear_orden_de_compra = (posible_orden: any): OrdenDeCompra => {
   try {
-    const orden_de_compra = EsquemaDeLaOrdenCompra.parse(
-      posible_orden_de_compra
-    );
-    return orden_de_compra;
+    return EsquemaDeLaOrdenCompra.parse(posible_orden);
   } catch (error) {
-    console.error(error);
-    throw Error(
-      "La orden de compra no cumple con lo necesario para satisfacerla"
-    );
+    throw Error("La orden no cumple con los datos necesarios.");
   }
 };
 
 const registrar_orden_de_compra = async (orden: OrdenDeCompra) => {
   try {
-    const orden_de_compra_registrada = await prisma.order.create({
+    return await prisma.order.create({
       data: { total: orden.precio_del_producto },
     });
-
-    return orden_de_compra_registrada;
   } catch (error) {
-    console.error(error);
-    throw Error("No se pudo registrar la orden de comprar");
+    throw Error("No se pudo registrar la orden de compra.");
   }
 };

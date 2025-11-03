@@ -28,12 +28,13 @@ export default function ProductosPage() {
       }
 
       // 🔹 1. Crear la orden de pago con Mercado Pago
-      const res = await fetch("/api/products", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: producto.title,
           price: producto.price,
+          stock: producto.stock,
         }),
       });
 
