@@ -1,0 +1,26 @@
+# Usa la imagen oficial de Nginx, la versión 'alpine' es más ligera.
+FROM nginx:alpine
+
+# Copia los archivos de tu aplicación (todo lo que está en el directorio actual)
+# al directorio donde Nginx busca los archivos web (por defecto, /usr/share/ngi>
+COPY . /usr/share/nginx/html
+
+# El puerto 80 es el puerto por defecto que Nginx escucha dentro del contenedor.
+EXPOSE 80
+
+# Comando para iniciar Nginx (ya está definido en la imagen base, pero lo dejam>
+CMD ["nginx", "-g", "daemon off;"]
+
+
+# Usa la imagen oficial de Nginx, la versión 'alpine' es más ligera.
+FROM nginx:alpine
+
+# Copia los archivos de tu aplicación (todo lo que está en el directorio actual)
+# al directorio donde Nginx busca los archivos web (por defecto, /usr/share/nginx/html)
+COPY . /usr/share/nginx/html
+
+# El puerto 80 es el puerto por defecto que Nginx escucha dentro del contenedor.
+EXPOSE 80
+
+# Comando para iniciar Nginx (ya está definido en la imagen base, pero lo dejamos por claridad)
+CMD ["nginx", "-g", "daemon off;"]

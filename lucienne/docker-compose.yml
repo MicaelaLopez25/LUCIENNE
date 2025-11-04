@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  lucienne-web:
+    build: .
+    image: lucienne/web:latest
+    container_name: lucienne-container
+    # Mapeo de puertos: Host_Port:Container_Port
+    # Accederás a http://<IP_DE_VM1>:80, pero el contenedor escucha en el 3000
+    ports:
+      - "80:3000"
+    restart: always

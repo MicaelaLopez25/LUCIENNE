@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  lucienne-web:
+    # 1. Indicamos que construya la imagen usando el Dockerfile en el directorio actual
+    build: .
+    # 2. Asignamos un nombre a la imagen. Usaremos 'latest' para el despliegue actual.
+    image: lucienne/web:latest
+    # 3. Nombre fijo para el contenedor (útil para referenciarlo en scripts)
+    container_name: lucienne-container
+    # 4. Mapeo de puertos: Host_Port:Container_Port
+    # Accederás a tu app desde el navegador en http://<IP_DE_VM1>:80
+    ports:
+      - "80:80"
+    # 5. Política de reinicio: se reiniciará automáticamente si se detiene
+    restart: always

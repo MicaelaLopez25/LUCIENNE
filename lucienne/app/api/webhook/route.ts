@@ -41,7 +41,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.log(`✅ Pago APROBADO ID: ${mpPaymentId}. Pedido ${orderId}`);
 
         await prisma.order.update({
-          where: { id: orderId },
+          where: { id: String(orderId) },
           data: {
             status: "APPROVED",
             paymentId: mpPaymentId,
