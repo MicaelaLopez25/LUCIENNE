@@ -17,7 +17,7 @@
     "codegen": "node ./tests/utils/global.setup.codegen.ts && npx playwright codegen"
   },
   "dependencies": {
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^6.19.0",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.542.0",
     "mercadopago": "^2.9.0",
@@ -33,6 +33,6 @@
     "@types/react": "19.1.10",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "prisma": "^6.18.0"
+    "prisma": "^6.19.0"
   }
 }

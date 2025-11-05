@@ -1,9 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";  // No es necesario importar NextRequest si usas Request estándar
 import { prisma } from "@/lib/prisma";
 
-// GET → listar productos
-export async function GET() {
-  const products = await prisma.product.findMany();
+// GET → listar productos con búsqueda por título
+export async function GET(req: Request) {  // Usar Request estándar
+  const searchTerm = req.url.split('search=')[1] || '';  // Obtener el parámetro 'search'
+  
+  const products = await prisma.product.findMany({
+    where: {
+      title: {
+        contains: searchTerm,  // Filtrar por título
+      },
+    },
+  });
+
   return NextResponse.json(products);
 }
 

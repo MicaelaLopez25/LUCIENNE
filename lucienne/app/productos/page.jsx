@@ -102,7 +102,7 @@ export default function ProductosPage() {
 
               {/* Imagen */}
               <img
-                src={`${p.image}`} // ⚠️ asegúrate que las imágenes estén en /public
+                src={p.image} // ⚠️ asegúrate que las imágenes estén en /public
                 alt={p.title}
                 className="producto-img"
               />
