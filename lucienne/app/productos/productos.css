@@ -159,3 +159,43 @@
 .producto-info {
   padding: 5px 8px 10px; /* Más padding en la parte inferior para separar */
 }
+/* --- ESTILOS PARA EL FILTRO GLOBAL DE COLORES --- */
+.global-filter-options {
+  width: 100%;
+  max-width: 1200px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.global-filter-options h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  color: #555;
+  font-weight: 500;
+}
+
+.filter-color-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin-right: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-color-btn.selected {
+  background-color: #e50914; /* Tu color rojo de marca */
+  color: white;
+  border-color: #e50914;
+  font-weight: bold;
+}
+
+.filter-color-btn:hover:not(.selected) {
+  background-color: #ddd;
+}

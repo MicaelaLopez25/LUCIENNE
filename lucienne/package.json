@@ -14,7 +14,7 @@
     "test": "npx playwright test",
     "test:report": "npx playwright show-report",
     "test:headed": "npx playwright test --headed",
-    "codegen": "node ./tests/utils/global.setup.codegen.ts && npx playwright codegen"
+    "codegen": "npx tsx ./tests/utils/global.setup.codegen.ts && npx playwright codegen && npx tsx ./tests/utils/global.teardown.codegen.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.0",

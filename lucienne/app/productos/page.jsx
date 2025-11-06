@@ -1,21 +1,20 @@
-// app/productos/page.jsx
+// app/productos/page.jsx (Versión Final Simplificada)
 
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
 import "./productos.css";
-import { ShoppingCart } from "lucide-react"; // icono carrito
-import { useSearch } from "../../components/SearchContext";
+import { ShoppingCart } from "lucide-react";
+import { useSearch } from "../../components/SearchContext"; // Asegura la ruta correcta
 
 export default function ProductosPage() {
   const [productos, setProductos] = useState([]);
-  // 💡 ESTADO NUEVO: Rastrear el color seleccionado por producto
-  const [selectedColors, setSelectedColors] = useState({});
+  const [selectedColors, setSelectedColors] = useState({}); 
+  const { searchTerm } = useSearch(); // Solo necesitamos el searchTerm
 
-  const { searchTerm } = useSearch();
-
+  // fetchData ahora solo depende del searchTerm
   const fetchData = useCallback(async (term) => {
-    // 💡 Construir la URL con el término de búsqueda
+    // 💡 La URL solo necesita el parámetro 'search'
     const url = term
       ? `/api/products?search=${encodeURIComponent(term)}`
       : "/api/products";
@@ -24,57 +23,46 @@ export default function ProductosPage() {
       const res = await fetch(url);
       const data = await res.json();
       setProductos(data);
-      console.log(data);
     } catch (error) {
       console.error("Error al obtener productos:", error);
     }
   }, []);
 
-  // Efecto para fetch/filtrado
+  // Efecto que se ejecuta al montar y CADA VEZ que cambia 'searchTerm'
   useEffect(() => {
     fetchData(searchTerm);
-  }, [searchTerm, fetchData]);
-
-  // 💡 FUNCIÓN NUEVA: Actualiza el estado del color seleccionado
+    // Nota: Eliminamos globalColorFilter de las dependencias.
+  }, [searchTerm, fetchData]); 
+  
+  // 💡 Función para seleccionar un color (solo para la compra, no para el filtro)
   const handleColorSelect = (productId, color) => {
-    setSelectedColors((prev) => ({
+    setSelectedColors(prev => ({
       ...prev,
-      [productId]: color, // Asigna el color al ID del producto
+      [productId]: color, 
     }));
   };
 
-  // --- FUNCIONALIDAD EXISTENTE: handleBuy (Añadiendo validación de color) ---
+  // --- handleBuy y handleDelete se mantienen sin cambios ---
   const handleBuy = async (productId) => {
     try {
       const producto = productos.find((p) => p.id === productId);
-      const selectedColor = selectedColors[productId]; // Obtener el color seleccionado
-
+      const selectedColor = selectedColors[productId];
+      const hasColors = producto.color && producto.color.split(',').map(c => c.trim()).filter(c => c.length > 0).length > 0;
+      
       if (!producto) return;
-
-      // Asume que si el producto tiene un campo 'color' lleno, requiere selección
-      const hasColors = producto.color && producto.color.length > 0;
-
-      // ⚠️ VALIDACIÓN DE COLOR
       if (hasColors && !selectedColor) {
-        alert("Por favor, selecciona un color antes de comprar.");
-        return;
+         alert("Por favor, selecciona un color antes de comprar.");
+         return;
       }
-
       if (producto.stock <= 0) {
         alert("Este producto está agotado y no puede comprarse.");
         return;
       }
 
-      // El resto de tu lógica de PATCH sigue igual:
       const res = await fetch("/api/products", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: productId,
-          cantidad: 1,
-          // Opcional: Si tu backend necesita saber el color:
-          // color: selectedColor
-        }),
+        body: JSON.stringify({ id: productId, cantidad: 1 }),
       });
 
       if (res.ok) {
@@ -93,20 +81,12 @@ export default function ProductosPage() {
     }
   };
 
-  // --- FUNCIONALIDAD EXISTENTE: handleDelete ---
   const handleDelete = async (productId) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
-      return;
-    }
-
+    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return;
     try {
-      const res = await fetch(`/api/products?id=${productId}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/products?id=${productId}`, { method: "DELETE" });
       if (res.ok) {
         setProductos(productos.filter((p) => p.id !== productId));
-        console.log("Producto eliminado exitosamente");
       } else {
         console.error("Error al eliminar el producto");
       }
@@ -114,13 +94,15 @@ export default function ProductosPage() {
       console.error("Error de red:", error);
     }
   };
-  // --- FIN DE LA FUNCIÓN ---
+  // --- FIN DE FUNCIONES ---
 
   return (
     <div className="productos-container">
       <h1>PRODUCTOS</h1>
 
-      {searchTerm && <h2>Resultados para: "{searchTerm}"</h2>}
+      {/* 💡 Se elimina el bloque de filtro global de color */}
+
+      {searchTerm && <h2>Resultados de la búsqueda: "{searchTerm}"</h2>}
 
       <section className="productos-grid">
         {productos.length === 0 && (
@@ -132,64 +114,50 @@ export default function ProductosPage() {
         )}
 
         {productos.map((p) => {
-          // 💡 Lógica para dividir el string de colores
-          const colors = p.color
-            ? p.color
-                .split(",")
-                .map((c) => c.trim())
-                .filter((c) => c.length > 0)
-            : [];
+          const colors = p.color ? p.color.split(',').map(c => c.trim()).filter(c => c.length > 0) : [];
           const currentSelectedColor = selectedColors[p.id];
           const hasColors = colors.length > 0;
-
+          
           return (
             <div
               key={p.id}
               className={`producto-card ${p.stock <= 0 ? "agotado" : ""}`}
             >
-              {/* --- BOTÓN DE ELIMINAR AGREGADO --- */}
               <button onClick={() => handleDelete(p.id)} className="delete-btn">
                 &times;
               </button>
 
-              {/* Imagen */}
               <img src={`${p.image}`} alt={p.title} className="producto-img" />
 
-              {/* Info */}
               <div className="producto-info">
                 <h2 className="producto-titulo">{p.title}</h2>
-                {/* 💡 BLOQUE DE SELECCIÓN DE COLORES */}
                 {hasColors && (
-                  <div className="color-selector">
-                    <p className="color-label">COLORES:</p>
-                    <div className="color-options">
-                      {colors.map((color) => (
-                        <button
-                          key={color}
-                          className={`color-btn ${
-                            currentSelectedColor === color ? "selected" : ""
-                          }`}
-                          onClick={() => handleColorSelect(p.id, color)}
-                        >
-                          {color.toUpperCase()}
-                        </button>
-                      ))}
+                    <div className="color-selector">
+                        <p className="color-label">COLORES:</p>
+                        <div className="color-options">
+                            {colors.map((color) => (
+                                <button
+                                    key={color}
+                                    className={`color-btn ${currentSelectedColor === color ? 'selected' : ''}`}
+                                    onClick={() => handleColorSelect(p.id, color)}
+                                >
+                                    {color.toUpperCase()}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                  </div>
                 )}
-
+                
                 <p className="producto-precio">
                   ${p.price.toLocaleString("es-AR")}
                 </p>
               </div>
 
-              {/* --- CAMPO DE STOCK AGREGADO --- */}
               <div className="producto-stock">CANTIDAD: {p.stock}</div>
 
               <button
                 className="agregar-carrito-btn"
                 onClick={() => handleBuy(p.id)}
-                // Deshabilitar si está agotado O si tiene colores pero ninguno ha sido seleccionado
                 disabled={p.stock <= 0 || (hasColors && !currentSelectedColor)}
               >
                 {p.stock > 0 ? "Comprar" : "Agotado"}
