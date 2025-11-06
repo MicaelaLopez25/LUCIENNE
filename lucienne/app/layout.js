@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { SearchProvider } from "@/components/SearchContext";
 
 export const metadata = {
   title: "Lucienne",
@@ -10,8 +11,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body>
-        <Navbar />
-        <main>{children}</main>
+        <SearchProvider>
+          <Navbar />
+          {children}
+        </SearchProvider>
         <Footer />
       </body>
     </html>

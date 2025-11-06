@@ -1,73 +1,84 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import "./productos.css";
 import { ShoppingCart } from "lucide-react"; // icono carrito (puedes usar react-icons también)
+import { useSearch } from "../../components/SearchContext";
 
 export default function ProductosPage() {
   const [productos, setProductos] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const res = await fetch("/api/products"); // endpoint que ya hiciste
+  const { searchTerm } = useSearch();
+
+  const fetchData = useCallback(async (term) => {
+    // 💡 Construir la URL con el término de búsqueda, si existe
+    const url = term
+      ? `/api/products?search=${encodeURIComponent(term)}` // Usamos `search` en el query
+      : "/api/products";
+
+    try {
+      const res = await fetch(url);
       const data = await res.json();
       setProductos(data);
       console.log(data);
-    };
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.error("Error al obtener productos:", error);
+      // Opcional: mostrar un mensaje al usuario
+    }
+  }, []); // Dependencias vacías, solo se crea una vez
 
+  // Efecto que se ejecuta al montar y CADA VEZ que cambia 'searchTerm'
+  useEffect(() => {
+    // 💡 Llamamos a fetchData con el término actual del contexto
+    fetchData(searchTerm);
+  }, [searchTerm, fetchData]); // Depende de `searchTerm` y `fetchData`
+
+  // --- FUNCIONALIDAD EXISTENTE: handleBuy ---
   const handleBuy = async (productId) => {
     try {
       const producto = productos.find((p) => p.id === productId);
       if (!producto) return;
-
       if (producto.stock <= 0) {
         alert("Este producto está agotado y no puede comprarse.");
         return;
       }
 
-      // 🔹 1. Crear la orden de pago con Mercado Pago
-      const res = await fetch("/api/checkout", {
-        method: "POST",
+      // PATCH para descontar 1 unidad (simulación de compra)
+      const res = await fetch("/api/products", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: producto.title,
-          price: producto.price,
-          stock: producto.stock,
-        }),
+        body: JSON.stringify({ id: productId, cantidad: 1 }),
       });
 
-      const data = await res.json();
-      if (data.init_point) {
-        // 🔹 2. Redirigir al checkout de Mercado Pago
-        window.location.href = data.init_point;
-        return;
+      if (res.ok) {
+        const updated = await res.json();
+        // 💡 Actualizamos el estado de productos
+        setProductos((prev) =>
+          prev.map((p) => (p.id === updated.id ? updated : p))
+        );
+        alert("Compra realizada correctamente ✅");
       } else {
-        alert("No se pudo iniciar el pago con Mercado Pago.");
-        return;
+        const error = await res.json();
+        alert(error.error || "Error al comprar producto");
       }
     } catch (error) {
       console.error(error);
-      alert("Error al conectar con el servidor o Mercado Pago");
+      alert("Error de conexión con el servidor");
     }
   };
 
-  // --- FUNCIÓN NUEVA PARA ELIMINAR ---
+  // --- FUNCIONALIDAD EXISTENTE: handleDelete ---
   const handleDelete = async (productId) => {
     if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) {
       return;
     }
 
     try {
-      // ANTES: fetch(`/api/products/${productId}`, ...
-      // AHORA: La URL incluye el ID como un parámetro de consulta "?id="
       const res = await fetch(`/api/products?id=${productId}`, {
         method: "DELETE",
       });
 
       if (res.ok) {
-        // La lógica para actualizar la UI no cambia
         setProductos(productos.filter((p) => p.id !== productId));
         console.log("Producto eliminado exitosamente");
       } else {
@@ -77,55 +88,57 @@ export default function ProductosPage() {
       console.error("Error de red:", error);
     }
   };
-
   // --- FIN DE LA FUNCIÓN ---
 
   return (
     <div className="productos-container">
       <h1>PRODUCTOS</h1>
+
+      {/* 💡 Muestra lo que se está buscando si hay un término */}
+      {searchTerm && <h2>Resultados para: "{searchTerm}"</h2>}
+
       <section className="productos-grid">
+        {/* 💡 Muestra mensaje si no hay resultados */}
+        {productos.length === 0 && (
+          <p>
+            {searchTerm
+              ? `No se encontraron productos que coincidan con "${searchTerm}".`
+              : "No hay productos disponibles."}
+          </p>
+        )}
+
         {productos.map((p) => (
-          <div key={p.id} className="producto-card">
-            {/* Icono carrito */}
-            <div className="cart-icon">
-              <ShoppingCart size={20} />
+          <div
+            key={p.id}
+            // Mantenemos tu className existente
+            className={`producto-card ${p.stock <= 0 ? "agotado" : ""}`}
+          >
+            {/* --- BOTÓN DE ELIMINAR AGREGADO --- */}
+            <button onClick={() => handleDelete(p.id)} className="delete-btn">
+              &times;
+            </button>
+
+            {/* Imagen */}
+            <img src={`${p.image}`} alt={p.title} className="producto-img" />
+
+            {/* Info */}
+            <div className="producto-info">
+              <h2 className="producto-titulo">{p.title}</h2>
+              <p className="producto-precio">
+                ${p.price.toLocaleString("es-AR")}
+              </p>
             </div>
 
-            <div
-              key={p.id}
-              className={`producto-card ${p.stock <= 0 ? "agotado" : ""}`}
+            {/* --- CAMPO DE STOCK AGREGADO --- */}
+            <div className="producto-stock">CANTIDAD: {p.stock}</div>
+
+            <button
+              className="agregar-carrito-btn"
+              onClick={() => handleBuy(p.id)}
+              disabled={p.stock <= 0}
             >
-              {/* --- BOTÓN DE ELIMINAR AGREGADO --- */}
-              <button onClick={() => handleDelete(p.id)} className="delete-btn">
-                &times; {/* Este es el símbolo de la "X" */}
-              </button>
-
-              {/* Imagen */}
-              <img
-                src={p.image} // ⚠️ asegúrate que las imágenes estén en /public
-                alt={p.title}
-                className="producto-img"
-              />
-
-              {/* Info */}
-              <div className="producto-info">
-                <h2 className="producto-titulo">{p.title}</h2>
-                <p className="producto-precio">
-                  ${p.price.toLocaleString("es-AR")}
-                </p>
-              </div>
-
-              {/* --- CAMPO DE STOCK AGREGADO --- */}
-              <div className="producto-stock">CANTIDAD: {p.stock}</div>
-
-              <button
-                className="agregar-carrito-btn"
-                onClick={() => handleBuy(p.id)}
-                disabled={p.stock <= 0}
-              >
-                {p.stock > 0 ? "Comprar" : "Agotado"}
-              </button>
-            </div>
+              {p.stock > 0 ? "Comprar" : "Agotado"}
+            </button>
           </div>
         ))}
       </section>
