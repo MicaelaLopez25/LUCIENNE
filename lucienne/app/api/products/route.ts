@@ -1,11 +1,51 @@
+
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET → listar productos
-export async function GET() {
-  const products = await prisma.product.findMany();
-  return NextResponse.json(products);
+
+// GET → listar productos con búsqueda en título Y color
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const searchTerm = url.searchParams.get("search") || ""; // Solo necesitamos 'search'
+
+  // 💡 Objeto WHERE
+  let where: any = {};
+
+  // 💡 Si hay un término de búsqueda, usamos el operador OR de Prisma
+  if (searchTerm) {
+    where.OR = [
+      {
+        // Buscar en el título
+        title: {
+          contains: searchTerm,
+        },
+      },
+      {
+        // Buscar en el campo de color
+        color: {
+          contains: searchTerm,
+        },
+      },
+    ];
+  }
+
+  try {
+    const products = await prisma.product.findMany({
+      where: where, // Aplica el filtro OR
+    });
+
+    return NextResponse.json(products);
+  } catch (error) {
+    console.error("Error al buscar productos:", error);
+    // Asegúrate de que este catch devuelva un 500 para evitar que el frontend falle
+    return NextResponse.json(
+      { error: "Error interno del servidor al buscar productos" },
+      { status: 500 }
+    );
+  }
 }
+
+
 
 // POST → crear producto
 export async function POST(req: Request) {
@@ -15,12 +55,13 @@ export async function POST(req: Request) {
       title: body.title,
       price: body.price,
       color: body.color,
-      stock: Number(body.stock) || 0,
+      stock: body.stock,
       image: body.image,
     },
   });
   return NextResponse.json(newProduct);
 }
+
 
 // DELETE → eliminar producto
 export async function DELETE(req: Request) {
