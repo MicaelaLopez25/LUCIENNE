@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.mika }}
           key: ${{ secrets.AAAAC3NzaC1lZDI1NTE5AAAAIDLgD6dE5lwGuGg5m7NOFB240xpHOZZomakdo8Qi+eN7 }}
           script: |
-            cd /home/micausa/LUCIENNE/lucciene
+            cd /home/micausa/LUCIENNE/lucienne
             ./build.sh
             ./deploy.sh
 
