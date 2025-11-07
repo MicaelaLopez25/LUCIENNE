@@ -1,0 +1,25 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v3
+
+      - name: Conectarse al servidor remoto
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.10.56.2.16 }}
+          username: ${{ secrets.mika }}
+          key: ${{ secrets.AAAAC3NzaC1lZDI1NTE5AAAAIDLgD6dE5lwGuGg5m7NOFB240xpHOZZomakdo8Qi+eN7 }}
+          script: |
+            cd /home/micausa/LUCIENNE/lucciene
+            ./build.sh
+            ./deploy.sh
+
