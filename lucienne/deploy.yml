@@ -15,9 +15,9 @@ jobs:
       - name: Conectarse al servidor remoto
         uses: appleboy/ssh-action@v0.1.10
         with:
-          host: ${{ secrets.10.56.2.16 }}
-          username: ${{ secrets.mika }}
-          key: ${{ secrets.AAAAC3NzaC1lZDI1NTE5AAAAIDLgD6dE5lwGuGg5m7NOFB240xpHOZZomakdo8Qi+eN7 }}
+          host: ${{ secrets.SHH_HOST }}
+          username: ${{ secrets.SHH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/micausa/LUCIENNE/lucienne
             ./build.sh
