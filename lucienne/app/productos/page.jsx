@@ -1,171 +1,44 @@
-// app/productos/page.jsx (Versión Final Simplificada)
+import { test, expect } from "@playwright/test";
 
-"use client";
+test("verificar el producto agotado y el stock visible (CORRECCIÓN FINAL)", async ({ page }) => {
+  const PRODUCTO_CON_STOCK = /pijamadelanda/i; 
+  const PRODUCTO_AGOTADO = /pijama/i;         
 
-import { useEffect, useState, useCallback } from "react";
-import "./productos.css";
-import { ShoppingCart } from "lucide-react";
-import { useSearch } from "../../components/SearchContext"; // Asegura la ruta correcta
+  await page.goto("http://localhost:3000/");
+  await page.getByRole("link", { name: "PRODUCTOS" }).click();
 
-export default function ProductosPage() {
-  const [productos, setProductos] = useState([]);
-  const [selectedColors, setSelectedColors] = useState({}); 
-  const { searchTerm } = useSearch(); // Solo necesitamos el searchTerm
-
-  // fetchData ahora solo depende del searchTerm
-  const fetchData = useCallback(async (term) => {
-    // 💡 La URL solo necesita el parámetro 'search'
-    const url = term
-      ? `/api/products?search=${encodeURIComponent(term)}`
-      : "/api/products";
-
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      setProductos(data);
-    } catch (error) {
-      console.error("Error al obtener productos:", error);
-    }
-  }, []);
-
-  // Efecto que se ejecuta al montar y CADA VEZ que cambia 'searchTerm'
-  useEffect(() => {
-    fetchData(searchTerm);
-    // Nota: Eliminamos globalColorFilter de las dependencias.
-  }, [searchTerm, fetchData]); 
+  // --- 1. Localizar Contenedores (CORRECCIÓN CRÍTICA: USAR CLASE CSS) ---
   
-  // 💡 Función para seleccionar un color (solo para la compra, no para el filtro)
-  const handleColorSelect = (productId, color) => {
-    setSelectedColors(prev => ({
-      ...prev,
-      [productId]: color, 
-    }));
-  };
+  // 💡 USAR LA CLASE REAL DE TU CÓDIGO: .producto-card
+  const cardProductoConStock = page
+    .locator('.producto-card') 
+    .filter({ has: page.getByText(PRODUCTO_CON_STOCK) }); 
+  
+  const cardProductoAgotado = page
+    .locator('.producto-card') 
+    .filter({ has: page.getByText(PRODUCTO_AGOTADO) });
 
-  // --- handleBuy y handleDelete se mantienen sin cambios ---
-  const handleBuy = async (productId) => {
-    try {
-      const producto = productos.find((p) => p.id === productId);
-      const selectedColor = selectedColors[productId];
-      const hasColors = producto.color && producto.color.split(',').map(c => c.trim()).filter(c => c.length > 0).length > 0;
-      
-      if (!producto) return;
-      if (hasColors && !selectedColor) {
-         alert("Por favor, selecciona un color antes de comprar.");
-         return;
-      }
-      if (producto.stock <= 0) {
-        alert("Este producto está agotado y no puede comprarse.");
-        return;
-      }
+  // --- 2. Verificar Stock Visible ('pijamadelanda') ---
+  
+  const stockVisibleLocator = cardProductoConStock.getByText(/stock: 1/i);
+  // Esta línea debe funcionar ahora, ya que el contenedor es específico.
+  await expect(stockVisibleLocator).toBeVisible(); 
+  
+  // --- 3. Simular Clic en el Producto Agotado ---
+  
+  const botonAgotado = cardProductoAgotado.getByRole("button", { name: "Agotado", exact: true });
+  
+  await expect(botonAgotado).toBeVisible();
+  await expect(botonAgotado).toBeDisabled(); 
 
-      const res = await fetch("/api/products", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: productId, cantidad: 1 }),
-      });
+  // Manejar el mensaje de la aplicación (disparado por showMessage)
+  // ... (código de manejo de diálogo/mensaje) ...
 
-      if (res.ok) {
-        const updated = await res.json();
-        setProductos((prev) =>
-          prev.map((p) => (p.id === updated.id ? updated : p))
-        );
-        alert("Compra realizada correctamente ✅");
-      } else {
-        const error = await res.json();
-        alert(error.error || "Error al comprar producto");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error de conexión con el servidor");
-    }
-  };
+  await botonAgotado.click();
 
-  const handleDelete = async (productId) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este producto?")) return;
-    try {
-      const res = await fetch(`/api/products?id=${productId}`, { method: "DELETE" });
-      if (res.ok) {
-        setProductos(productos.filter((p) => p.id !== productId));
-      } else {
-        console.error("Error al eliminar el producto");
-      }
-    } catch (error) {
-      console.error("Error de red:", error);
-    }
-  };
-  // --- FIN DE FUNCIONES ---
+  // Verificar el mensaje de agotado (se genera en #message-box)
+  await expect(page.locator('#message-box')).toHaveText(/Este producto está agotado/i);
 
-  return (
-    <div className="productos-container">
-      <h1>PRODUCTOS</h1>
-
-      {/* 💡 Se elimina el bloque de filtro global de color */}
-
-      {searchTerm && <h2>Resultados de la búsqueda: "{searchTerm}"</h2>}
-
-      <section className="productos-grid">
-        {productos.length === 0 && (
-          <p>
-            {searchTerm
-              ? `No se encontraron productos que coincidan con "${searchTerm}".`
-              : "No hay productos disponibles."}
-          </p>
-        )}
-
-        {productos.map((p) => {
-          const colors = p.color ? p.color.split(',').map(c => c.trim()).filter(c => c.length > 0) : [];
-          const currentSelectedColor = selectedColors[p.id];
-          const hasColors = colors.length > 0;
-          
-          return (
-            <div
-              key={p.id}
-              className={`producto-card ${p.stock <= 0 ? "agotado" : ""}`}
-            >
-              <button onClick={() => handleDelete(p.id)} className="delete-btn">
-                &times;
-              </button>
-
-              <img src={`${p.image}`} alt={p.title} className="producto-img" />
-
-              <div className="producto-info">
-                <h2 className="producto-titulo">{p.title}</h2>
-                {hasColors && (
-                    <div className="color-selector">
-                        <p className="color-label">COLORES:</p>
-                        <div className="color-options">
-                            {colors.map((color) => (
-                                <button
-                                    key={color}
-                                    className={`color-btn ${currentSelectedColor === color ? 'selected' : ''}`}
-                                    onClick={() => handleColorSelect(p.id, color)}
-                                >
-                                    {color.toUpperCase()}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-                
-                <p className="producto-precio">
-                  ${p.price.toLocaleString("es-AR")}
-                </p>
-              </div>
-
-              <div className="producto-stock">CANTIDAD: {p.stock}</div>
-
-              <button
-                className="agregar-carrito-btn"
-                onClick={() => handleBuy(p.id)}
-                disabled={p.stock <= 0 || (hasColors && !currentSelectedColor)}
-              >
-                {p.stock > 0 ? "Comprar" : "Agotado"}
-              </button>
-            </div>
-          );
-        })}
-      </section>
-    </div>
-  );
-}
+  // Verificar el contador del carrito (si existe)
+  await expect(page.getByText("CANTIDAD:").nth(3)).toBeVisible();
+});
