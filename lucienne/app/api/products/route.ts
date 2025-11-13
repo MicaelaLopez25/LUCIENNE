@@ -1,27 +1,21 @@
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-
 
 // GET → listar productos con búsqueda en título Y color
 export async function GET(req: Request) {
   const url = new URL(req.url);
-  const searchTerm = url.searchParams.get("search") || ""; // Solo necesitamos 'search'
+  const searchTerm = url.searchParams.get("search") || "";
 
-  // 💡 Objeto WHERE
   let where: any = {};
 
-  // 💡 Si hay un término de búsqueda, usamos el operador OR de Prisma
   if (searchTerm) {
     where.OR = [
       {
-        // Buscar en el título
         title: {
           contains: searchTerm,
         },
       },
       {
-        // Buscar en el campo de color
         color: {
           contains: searchTerm,
         },
@@ -31,21 +25,18 @@ export async function GET(req: Request) {
 
   try {
     const products = await prisma.product.findMany({
-      where: where, // Aplica el filtro OR
+      where: where,
     });
 
     return NextResponse.json(products);
   } catch (error) {
     console.error("Error al buscar productos:", error);
-    // Asegúrate de que este catch devuelva un 500 para evitar que el frontend falle
     return NextResponse.json(
       { error: "Error interno del servidor al buscar productos" },
       { status: 500 }
     );
   }
 }
-
-
 
 // POST → crear producto
 export async function POST(req: Request) {
@@ -62,7 +53,6 @@ export async function POST(req: Request) {
   return NextResponse.json(newProduct);
 }
 
-
 // DELETE → eliminar producto
 export async function DELETE(req: Request) {
   const url = new URL(req.url);
@@ -77,7 +67,7 @@ export async function DELETE(req: Request) {
 
   try {
     const deletedProduct = await prisma.product.delete({
-      where: { id: parseInt(id) }, // Convertimos el ID a número entero
+      where: { id: parseInt(id) },
     });
 
     return NextResponse.json(deletedProduct);
@@ -89,19 +79,27 @@ export async function DELETE(req: Request) {
   }
 }
 
-// PATCH actualiza/descuenta stock
-export async function PATCH(req) {
+// *** FUNCIÓN CRÍTICA PARA EL DESCUENTO DE STOCK ***
+export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, cantidad } = body;
+    let { id, cantidad } = body;
 
-    if (!id || !cantidad) {
-      return NextResponse.json({ error: "Faltan datos" }, { status: 400 });
+    // Convertir a número siempre (esto ya lo hacías, ¡excelente!)
+    const numericId = Number(id);
+    const numericCantidad = Number(cantidad);
+
+    // Validación correcta
+    if (isNaN(numericId) || isNaN(numericCantidad)) {
+      return NextResponse.json(
+        { error: "ID o cantidad inválidos" },
+        { status: 400 }
+      );
     }
 
-    // Buscar producto actual
+    // Buscar producto
     const product = await prisma.product.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: numericId },
     });
 
     if (!product) {
@@ -111,28 +109,28 @@ export async function PATCH(req) {
       );
     }
 
-    // Verificar stock disponible
-    if (product.stock < cantidad) {
+    // Chequear stock
+    if (product.stock < numericCantidad) {
       return NextResponse.json(
         { error: "Stock insuficiente" },
         { status: 400 }
       );
     }
 
-    // Descontar stock
+    // Actualizar stock
     const updated = await prisma.product.update({
-      where: { id: parseInt(id) },
+      where: { id: numericId },
       data: {
-        stock: product.stock - cantidad,
+        stock: product.stock - numericCantidad,
       },
     });
 
-    // Responder con el producto actualizado
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Error PATCH:", error);
+    console.error("Error PATCH en la API:", error);
+    // Aseguramos que cualquier error de Prisma devuelva un 500
     return NextResponse.json(
-      { error: "Error al actualizar stock" },
+      { error: "Error interno del servidor al actualizar stock" },
       { status: 500 }
     );
   }
