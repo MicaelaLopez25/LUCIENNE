@@ -1,0 +1,25 @@
+name: 🚀 Deploy Lucienne
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout del repo
+        uses: actions/checkout@v3
+
+      - name: 🔐 Conectarse al servidor y desplegar
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ~/micausa/LUCIENNE/lucienne
+            git pull origin main
+            ./build.sh && ./deploy.sh
