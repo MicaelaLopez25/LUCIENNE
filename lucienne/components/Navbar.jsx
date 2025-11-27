@@ -4,6 +4,7 @@ import { useState } from "react";
 import styles from "./Navbar.module.css";
 import Link from "next/link";
 import { useSearch } from "./SearchContext";
+import { CartIcon } from "./CartIcon";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,7 +32,11 @@ export default function Navbar() {
       </div>
       <div className={styles.iconos}>
         <span>👤</span>
-        <span>🛒</span>
+        {/* 🛒 REEMPLAZAMOS el <span>🛒</span> ESTÁTICO */}
+        <Link href="/carrito" passHref> 
+          {/* El componente CartIcon muestra el contador dinámico */}
+          <CartIcon />
+        </Link>
       </div>
       {/* Botón para móviles */}
       <button className={styles["menu-toggle"]} onClick={toggleMenu}>
