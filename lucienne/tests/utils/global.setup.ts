@@ -22,6 +22,20 @@ async function globalSetup() {
         stock: 0,
         image: "jdsfj",
       },
+        {
+        title: "pijama",
+        price: 120000,
+        color: "azul",
+        stock: 5,
+        image: "test1.jpg",
+      },
+      {
+        title: "pijama largo test",
+        price: 35000,
+        color: "azul",
+        stock: 3,
+        image: "test2.jpg",
+      },
     ],
   });
 

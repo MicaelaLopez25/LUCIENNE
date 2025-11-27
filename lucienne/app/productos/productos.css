@@ -213,3 +213,60 @@
   border: none;
   cursor: pointer;
 }
+/* Nuevo contenedor para los dos botones */
+.button-group {
+    display: flex;
+    gap: 10px; /* Espacio entre los botones */
+    padding: 15px; /* Padding interno de la tarjeta */
+    padding-top: 5px; /* Menos espacio arriba */
+}
+
+.carrito-btn,
+.comprar-ahora-btn {
+    /* Estilos base compartidos */
+    flex: 1; /* Para que ambos ocupen la mitad del espacio */
+    padding: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    transition: background-color 0.3s ease, opacity 0.3s;
+}
+
+/* Estilo para el botón "Agregar al Carrito" */
+.carrito-btn {
+    background-color: #f0f0f0; /* Color claro para el carrito */
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.carrito-btn:hover:not(:disabled) {
+    background-color: #e0e0e0;
+}
+
+/* Estilo para el botón "Comprar Ahora" (Principal/Destacado) */
+.comprar-ahora-btn {
+    background-color: #9d3345; /* Color principal de LUCIENNE */
+    color: white;
+    border: none;
+}
+
+.comprar-ahora-btn:hover:not(:disabled) {
+    background-color: #7a2835;
+}
+
+/* Estilo para botones deshabilitados (Sin Stock o Sin Color) */
+.carrito-btn:disabled,
+.comprar-ahora-btn:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Aseguramos que el producto-card distribuya el espacio */
+.producto-card {
+    justify-content: space-between;
+}

@@ -3,11 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import "./productos.css";
 import { useSearch } from "../../components/SearchContext";
+// 💡 IMPORTACIONES DE JOTAI
+import { useSetAtom } from 'jotai';
+import { addToCartAtom } from '../state/cartAtoms'; 
 
 export default function ProductosPage() {
   const [productos, setProductos] = useState([]);
   const [selectedColors, setSelectedColors] = useState({});
   const { searchTerm } = useSearch();
+
+  // 💡 HOOK: Obtenemos la función para agregar al carrito (setter de Jotai)
+  const addToCart = useSetAtom(addToCartAtom);
 
   // --- GET productos (con búsqueda) ---
   const fetchData = useCallback(async (term) => {
@@ -28,7 +34,7 @@ export default function ProductosPage() {
     fetchData(searchTerm);
   }, [searchTerm, fetchData]);
 
-  // --- Selección de color (Se mantiene, solo para marcar visualmente si lo deseas) ---
+  // --- Selección de color (Solo para Carrito) ---
   const handleColorSelect = (productId, color) => {
     setSelectedColors((prev) => ({
       ...prev,
@@ -36,43 +42,17 @@ export default function ProductosPage() {
     }));
   };
 
-  // --- COMPRAR (PATCH) ---
-  const handleBuy = async (productId) => {
-    // *** CORRECCIÓN: Quitamos el console.log para limpiar el código
-    const numericId = Number(productId);
+  // --- 1. FUNCIÓN "COMPRAR AHORA" (Modifica stock inmediatamente, no usa color) ---
+  const handleBuyNow = async (product) => {
+    const numericId = Number(product.id);
+
+    if (product.stock <= 0) {
+      alert("Este producto está agotado.");
+      return;
+    }
 
     try {
-      const producto = productos.find(
-        (p) => Number(p.id) === Number(productId)
-      );
-      if (!producto) return;
-
-      // 🛑 ELIMINAMOS TODA LA LÓGICA DE VALIDACIÓN DE COLOR AQUÍ:
-      // Si la intención es que el color no afecte la compra, ya no necesitamos:
-      /*
-      const validColors = producto.color
-        ? producto.color
-            .split(",")
-            .map((c) => c.trim())
-            .filter((c) => c.length > 0)
-        : [];
-
-      const hasColors = validColors.length > 0;
-      const selectedColor = selectedColors[producto.id]; 
-
-      if (hasColors && !selectedColor) {
-        alert("Por favor, selecciona un color antes de comprar.");
-        return;
-      }
-      */
-      // ------------------------------------------------------------------------
-
-      if (producto.stock <= 0) {
-        alert("Este producto está agotado.");
-        return;
-      }
-
-      // --- LLAMADA PATCH ---
+      // --- LLAMADA PATCH para decrementar stock ---
       const res = await fetch("/api/products", {
         method: "PATCH",
         headers: {
@@ -81,8 +61,8 @@ export default function ProductosPage() {
         },
         cache: "no-store",
         body: JSON.stringify({
-          id: numericId, // Usamos el ID numérico para la API
-          cantidad: 1,
+          id: numericId, 
+          cantidad: 1, // Decrementamos 1 unidad
         }),
       });
 
@@ -99,13 +79,58 @@ export default function ProductosPage() {
         prev.map((p) => (p.id === updated.id ? updated : p))
       );
 
-      alert("Compra realizada correctamente");
+      // Opcional: Redirigir a checkout o mostrar modal
+      alert(`Compra rápida de "${product.title}" realizada correctamente. Stock actualizado.`);
     } catch (error) {
-      console.error("Error en handleBuy:", error);
+      console.error("Error en handleBuyNow:", error);
       alert("Error de conexión");
     }
   };
 
+  // --- 2. FUNCIÓN "AGREGAR AL CARRITO" (Usa Jotai, requiere color si existe) ---
+  const handleAddToCart = (product) => {
+    // 1. VALIDACIÓN BÁSICA DE STOCK
+    if (product.stock <= 0) {
+      alert("Este producto está agotado y no puede ser agregado al carrito.");
+      return;
+    }
+
+    // 2. VALIDACIÓN DE VARIANTE (COLOR): Obligatorio solo si el producto tiene colores
+    const validColors = product.color
+      ? product.color
+          .split(",")
+          .map((c) => c.trim())
+          .filter((c) => c.length > 0)
+      : [];
+    
+    const hasColors = validColors.length > 0;
+    const selectedColor = selectedColors[product.id];
+
+    if (hasColors && !selectedColor) {
+      // Muestra un mensaje claro si debe seleccionar un color
+      alert("Por favor, selecciona un color antes de agregarlo al carrito.");
+      return;
+    }
+
+    // 3. CONSTRUCCIÓN DEL ÍTEM
+    const item = {
+      id: String(product.id), 
+      name: product.title,
+      unitPrice: product.price,
+      quantity: 1, 
+      imageUrl: product.image || 'https://placehold.co/50x50/cccccc/000000?text=IMG',
+      
+      // Si tiene colores, la variante es el color seleccionado. Si no, es "Única".
+      variant: hasColors ? `${selectedColor.toUpperCase()}` : 'Única', 
+    };
+
+    // 4. LLAMADA AL ÁTOMO DE ESCRITURA DE JOTAI
+    addToCart(item);
+
+    // Feedback visual
+    alert(`"${product.title} - ${item.variant}" agregado al carrito.`);
+  };
+  
   // --- ELIMINAR (Sin cambios) ---
   const handleDelete = async (productId) => {
     if (!confirm("¿Eliminar producto?")) return;
@@ -146,22 +171,32 @@ export default function ProductosPage() {
             : [];
           const hasColors = validColors.length > 0;
           const currentSelectedColor = selectedColors[p.id];
+          const isDisabled = p.stock <= 0;
+
+          // Se deshabilita el botón de Agregar al Carrito si requiere color y no se ha seleccionado
+          const disableAddToCart = hasColors && !currentSelectedColor;
+
 
           return (
             <div
               key={p.id}
-              className={`producto-card ${p.stock <= 0 ? "agotado" : ""}`}
+              className={`producto-card ${isDisabled ? "agotado" : ""}`} 
             >
               <button onClick={() => handleDelete(p.id)} className="delete-btn">
                 &times;
               </button>
 
-              <img src={p.image} alt={p.title} className="producto-img" />
+              <img 
+                src={p.image || 'https://placehold.co/250x300/e0e0e0/000000?text=LUCIENNE'} 
+                alt={p.title} 
+                className="producto-img" 
+                onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/250x300/e0e0e0/000000?text=LUCIENNE' }}
+              />
 
               <div className="producto-info">
                 <h2 className="producto-titulo">{p.title}</h2>
 
-                {/* La selección de color se mantiene, pero solo a nivel visual */}
+                {/* Selección de Color (Solo para Carrito) */}
                 {hasColors && (
                   <div className="color-selector">
                     <p className="color-label">COLORES:</p>
@@ -180,23 +215,49 @@ export default function ProductosPage() {
                     </div>
                   </div>
                 )}
+                {/* Indicador de color seleccionado para el carrito */}
+                {hasColors && currentSelectedColor && (
+                  <small style={{display: 'block', marginTop: '5px', color: '#9d3345', fontWeight: 'bold'}}>
+                    Seleccionado: {currentSelectedColor.toUpperCase()}
+                  </small>
+                )}
+                
+                {/* Mensaje de requisito de color */}
+                {hasColors && !currentSelectedColor && !isDisabled && (
+                    <small style={{display: 'block', marginTop: '5px', color: 'red'}}>
+                        *Selecciona un color para agregar al carrito.
+                    </small>
+                )}
+
 
                 <p className="producto-precio">
                   ${p.price.toLocaleString("es-AR")}
                 </p>
               </div>
 
-              <div className="producto-stock">CANTIDAD: {p.stock}</div>
+              <div className="producto-stock">STOCK: {p.stock}</div>
 
-              <button
-                className="agregar-carrito-btn"
-                onClick={() => handleBuy(p.id)}
-                // ✅ ÚNICA VALIDACIÓN: Solo se deshabilita si el stock es 0 o menos.
-                disabled={p.stock <= 0}
-                data-testid={`buy-btn-${p.id}`}
-              >
-                {p.stock > 0 ? "Comprar" : "Agotado"}
-              </button>
+              {/* 💡 CONTENEDOR DE DOBLE BOTÓN */}
+              <div className="button-group">
+                {/* 1. BOTÓN "AGREGAR AL CARRITO" (Requiere color si aplica, usa Jotai) */}
+                <button
+                    className="carrito-btn"
+                    onClick={() => handleAddToCart(p)}
+                    disabled={isDisabled || disableAddToCart} // Deshabilitado por stock o por falta de color
+                >
+                    {isDisabled ? "SIN STOCK" : "Agregar al Carrito"}
+                </button>
+                
+                {/* 2. BOTÓN "COMPRAR AHORA" (Solo se deshabilita por stock, usa API PATCH) */}
+                <button
+                    className="comprar-ahora-btn"
+                    onClick={() => handleBuyNow(p)}
+                    disabled={isDisabled} 
+                >
+                    Comprar Ahora
+                </button>
+              </div> {/* Fin button-group */}
+
             </div>
           );
         })}

@@ -1,18 +1,24 @@
+
 'use client'; 
 
 import React from 'react';
-import { useAtomValue } from 'jotai';
-// Importamos los átomos y la función de ayuda
-// Asegúrate que esta ruta es correcta para llegar a app/state/cartAtoms.js
+// Importamos useSetAtom además de useAtomValue
+import { useAtomValue, useSetAtom } from 'jotai'; 
+
 import {
   cartItemsAtom,
   cartTotalAtom,
-  calculateItemSubtotal
+  calculateItemSubtotal,
+  removeItemFromCartAtom // 💡 Importación del átomo para eliminar
 } from '../app/state/cartAtoms'; 
 
 // Componente para renderizar una fila de artículo
-const CartItem = ({ item }) => {
+// Acepta 'onRemove' para la función de eliminación
+const CartItem = ({ item, onRemove }) => {
   const subtotal = calculateItemSubtotal(item.unitPrice, item.quantity);
+  
+  // Clave única del ítem (ID de Producto + Variante/Color)
+  const itemKey = `${item.id}-${item.variant}`; 
 
   const itemStyle = {
     display: 'grid',
@@ -51,18 +57,20 @@ const CartItem = ({ item }) => {
       {/* Subtotal por Artículo */}
       <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>${subtotal}</div>
       
-      {/* Botón Eliminar (Deshabilitado, será funcional en una HU futura) */}
+      {/* Botón Eliminar (AHORA FUNCIONAL) */}
       <div>
         <button 
+          onClick={() => onRemove(itemKey)} // Llama a la función de eliminación con la clave única del ítem
           style={{ 
             background: 'none', 
             border: 'none', 
-            cursor: 'not-allowed', 
-            color: '#ccc',
-            fontSize: '1.5em'
+            cursor: 'pointer',
+            color: '#9d3345', // Color de marca para el botón de eliminar
+            fontSize: '1.5em',
+            transition: 'color 0.2s'
           }} 
           aria-label="Eliminar producto"
-          disabled
+          title="Eliminar ítem del carrito"
         >
           &times;
         </button>
@@ -76,8 +84,11 @@ export const CartPage = () => {
   // Leemos los átomos del estado de la lista de ítems y el total
   const cartItems = useAtomValue(cartItemsAtom);
   const cartTotal = useAtomValue(cartTotalAtom);
+  
+  // 💡 OBTENEMOS la función para eliminar del carrito mediante el átomo de escritura
+  const removeItemFromCart = useSetAtom(removeItemFromCartAtom); 
 
-  // Estilos de la cabecera de la tabla
+  // Estilos de la cabecera
   const headerStyle = {
     fontWeight: 'bold',
     borderBottom: '2px solid #333',
@@ -111,9 +122,14 @@ export const CartPage = () => {
         <div></div> 
       </div>
 
-      {/* Mapea y renderiza los ítems del carrito */}
+      {/* Lista de Items */}
       {cartItems.map((item) => (
-        <CartItem key={`${item.id}-${item.variant}`} item={item} />
+        // Pasamos la función removeItemFromCart como prop onRemove
+        <CartItem 
+          key={`${item.id}-${item.variant}`} 
+          item={item} 
+          onRemove={removeItemFromCart}
+        />
       ))}
 
       {/* Total General */}
