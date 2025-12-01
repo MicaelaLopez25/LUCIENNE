@@ -34,6 +34,6 @@
     "@types/react": "19.1.10",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "prisma": "^7.0.1"
+    "prisma": "^6.19.0"
   }
 }
