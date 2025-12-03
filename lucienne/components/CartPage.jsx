@@ -1,24 +1,80 @@
 
 'use client'; 
 
-import React from 'react';
-// Importamos useSetAtom además de useAtomValue
+import React, { useState } from 'react';
+// Importamos useSetAtom y useAtomValue
 import { useAtomValue, useSetAtom } from 'jotai'; 
 
+// Ajuste en la ruta de importación de los átomos
 import {
   cartItemsAtom,
   cartTotalAtom,
   calculateItemSubtotal,
-  removeItemFromCartAtom // 💡 Importación del átomo para eliminar
+  removeItemFromCartAtom,
+  updateCartItemAtom, // 💡 Átomo para la modificación (Cantidad/Variante)
+  mockProductDetailsAtom // 💡 Átomo para obtener variantes mockeadas
 } from '../app/state/cartAtoms'; 
 
+
+// Componente para manejar el mensaje de stock insuficiente (no usamos alert)
+const StockMessage = ({ message }) => {
+    if (!message) return null;
+    return (
+        <p style={{ 
+            color: 'red', 
+            fontSize: '0.9em', 
+            fontWeight: 'bold', 
+            margin: '5px 0 0 0' 
+        }}>
+            ⚠️ {message}
+        </p>
+    );
+};
+
+
 // Componente para renderizar una fila de artículo
-// Acepta 'onRemove' para la función de eliminación
-const CartItem = ({ item, onRemove }) => {
+// Ahora acepta 'onRemove' y 'onUpdate'
+const CartItem = ({ item, onRemove, onUpdate }) => {
+  // Estado local para mensaje de stock o validación
+  const [stockError, setStockError] = useState(''); 
   const subtotal = calculateItemSubtotal(item.unitPrice, item.quantity);
+  const itemKey = `${item.id}-${item.variant}`;
   
-  // Clave única del ítem (ID de Producto + Variante/Color)
-  const itemKey = `${item.id}-${item.variant}`; 
+  // Obtenemos los detalles mockeados para saber qué colores tiene este producto
+  const productDetails = useAtomValue(mockProductDetailsAtom).find(p => p.id === item.id);
+  // Lista de variantes disponibles (ej: 'Negro S', 'Rojo M')
+  const availableVariants = productDetails ? productDetails.colors : [item.variant]; 
+
+  // --- Manejar cambio de Cantidad (HU-03 Criterio 1 y 2) ---
+  const handleQuantityChange = (e) => {
+    const newQuantity = Number(e.target.value);
+    
+    // Si es menor a 1, lo forzamos a 1 (Criterio 1)
+    if (newQuantity < 1) {
+      onUpdate({ oldItemKey: itemKey, newQuantity: 1 });
+      return;
+    }
+    
+    // Validación de stock (Criterio 2)
+    if (newQuantity > item.maxStock) {
+        setStockError(`Máximo stock disponible: ${item.maxStock}`);
+        // Actualizamos a la cantidad máxima, el átomo se encarga de aplicar el Math.min
+        onUpdate({ oldItemKey: itemKey, newQuantity: item.maxStock });
+        return;
+    }
+
+    setStockError(''); // Limpiar error si es válido
+    onUpdate({ oldItemKey: itemKey, newQuantity });
+  };
+  
+  // --- Manejar cambio de Variante (Color) (HU-03 Criterio 3) ---
+  const handleVariantChange = (e) => {
+    const newVariant = e.target.value;
+    setStockError('');
+    // Llamamos a la lógica de fusión/reemplazo en Jotai
+    onUpdate({ oldItemKey: itemKey, newVariant });
+  };
+
 
   const itemStyle = {
     display: 'grid',
@@ -33,39 +89,71 @@ const CartItem = ({ item, onRemove }) => {
 
   return (
     <div style={itemStyle}>
-      {/* Producto: Imagen, Nombre, Variante */}
-      <div style={{ display: 'flex', alignItems: 'center', textAlign: 'left' }}>
-        <img 
-          src={item.imageUrl} 
-          alt={item.name} 
-          style={{ width: '60px', height: '60px', marginRight: '15px', objectFit: 'cover', borderRadius: '4px' }} 
-          // Placeholder para evitar errores de imagen
-          onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/60x60/cccccc/000000?text=IMG' }}
-        />
-        <div>
-          <p style={{ fontWeight: 'bold', margin: 0, fontSize: '1em' }}>{item.name}</p>
-          <small style={{ color: '#666', fontSize: '0.9em' }}>{item.variant}</small>
+      {/* 1. Producto: Imagen, Nombre, Variante (Modificable) */}
+      <div style={{ display: 'flex', alignItems: 'center', textAlign: 'left', flexDirection: 'column', paddingRight: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            <img 
+              src={item.imageUrl} 
+              alt={item.name} 
+              style={{ width: '60px', height: '60px', marginRight: '15px', objectFit: 'cover', borderRadius: '4px' }} 
+              onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/60x60/cccccc/000000?text=IMG' }}
+            />
+            <div>
+              <p style={{ fontWeight: 'bold', margin: 0, fontSize: '1em' }}>{item.name}</p>
+              {/* Selector de Variante (Criterio 3) */}
+              <select 
+                value={item.variant} 
+                onChange={handleVariantChange}
+                style={{ 
+                    padding: '5px', 
+                    borderRadius: '4px', 
+                    border: '1px solid #ccc',
+                    marginTop: '5px',
+                    fontSize: '0.9em'
+                }}
+              >
+                {availableVariants.map(variant => (
+                    <option key={variant} value={variant}>{variant.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
         </div>
+        <StockMessage message={stockError} />
       </div>
 
-      {/* Precio Unitario */}
+      {/* 2. Precio Unitario */}
       <div>${item.unitPrice.toFixed(2)}</div>
 
-      {/* Cantidad (solo lectura por ahora) */}
-      <div>{item.quantity}</div> 
+      {/* 3. Cantidad (Input para Modificación - Criterio 1) */}
+      <div>
+        <input
+            type="number"
+            value={item.quantity}
+            onChange={handleQuantityChange}
+            min="1"
+            max={item.maxStock} // Límite visual, la lógica principal está en Jotai
+            style={{ 
+                width: '60px', 
+                padding: '5px', 
+                textAlign: 'center', 
+                borderRadius: '4px',
+                border: '1px solid #9d3345',
+            }}
+        />
+      </div> 
 
-      {/* Subtotal por Artículo */}
+      {/* 4. Subtotal por Artículo */}
       <div style={{ fontWeight: 'bold', fontSize: '1.1em' }}>${subtotal}</div>
       
-      {/* Botón Eliminar (AHORA FUNCIONAL) */}
+      {/* 5. Botón Eliminar */}
       <div>
         <button 
-          onClick={() => onRemove(itemKey)} // Llama a la función de eliminación con la clave única del ítem
+          onClick={() => onRemove(itemKey)} 
           style={{ 
             background: 'none', 
             border: 'none', 
             cursor: 'pointer',
-            color: '#9d3345', // Color de marca para el botón de eliminar
+            color: '#9d3345', 
             fontSize: '1.5em',
             transition: 'color 0.2s'
           }} 
@@ -85,8 +173,9 @@ export const CartPage = () => {
   const cartItems = useAtomValue(cartItemsAtom);
   const cartTotal = useAtomValue(cartTotalAtom);
   
-  // 💡 OBTENEMOS la función para eliminar del carrito mediante el átomo de escritura
+  // OBTENEMOS la función para eliminar y modificar
   const removeItemFromCart = useSetAtom(removeItemFromCartAtom); 
+  const updateCartItem = useSetAtom(updateCartItemAtom); // 💡 Hook para la modificación
 
   // Estilos de la cabecera
   const headerStyle = {
@@ -115,7 +204,7 @@ export const CartPage = () => {
 
       {/* Encabezado de la lista */}
       <div style={headerStyle}>
-        <div style={{textAlign: 'left'}}>PRODUCTO</div>
+        <div style={{textAlign: 'left'}}>PRODUCTO Y VARIANTE</div>
         <div>PRECIO UNITARIO</div>
         <div>CANTIDAD</div>
         <div>SUBTOTAL</div>
@@ -124,11 +213,11 @@ export const CartPage = () => {
 
       {/* Lista de Items */}
       {cartItems.map((item) => (
-        // Pasamos la función removeItemFromCart como prop onRemove
         <CartItem 
           key={`${item.id}-${item.variant}`} 
           item={item} 
           onRemove={removeItemFromCart}
+          onUpdate={updateCartItem} // 💡 Pasamos la función de modificación
         />
       ))}
 
@@ -143,6 +232,18 @@ export const CartPage = () => {
         <p style={{ fontSize: '1.8em', fontWeight: 'bold', margin: 0 }}>
           TOTAL: <span style={{ color: '#9d3345' }}>${cartTotal.toFixed(2)}</span>
         </p>
+        <button style={{ 
+            backgroundColor: '#9d3345', 
+            color: 'white', 
+            padding: '10px 20px', 
+            border: 'none', 
+            borderRadius: '5px', 
+            fontSize: '1.2em', 
+            marginTop: '15px',
+            cursor: 'pointer'
+        }}>
+            FINALIZAR COMPRA
+        </button>
       </div>
     </div>
   );
