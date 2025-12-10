@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { SearchProvider } from "@/components/SearchContext";
+import "./globals.css"; 
 
 export const metadata = {
   title: "Lucienne",

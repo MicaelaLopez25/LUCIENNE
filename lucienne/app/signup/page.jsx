@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import "./page-signup.css"
 
 export default function SignUpPage() {
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: ""
+    password: "",
   });
 
   const [error, setError] = useState("");
@@ -22,9 +23,16 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
 
+    // Aquí se eliminó la comprobación de confirmPassword
+
     const res = await fetch("/api/auth/signup", {
       method: "POST",
-      body: JSON.stringify(form),
+      // Enviamos solo name, email y password, como requiere tu modelo
+      body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+      }),
     });
 
     const data = await res.json();
@@ -41,42 +49,61 @@ export default function SignUpPage() {
       password: form.password,
     });
 
-    router.push("/"); // Home
+    router.push("/"); // Redirigir a Home
   };
 
   return (
-    <div className="signup-container">
-      <h2>Crear cuenta</h2>
+    // Contenedor principal para la estructura de la página
+    <div className="page-wrapper"> 
+        {/* Barra roja superior (estilizada con CSS) */}
+        <div className="top-header-red"></div> 
+        
+        <div className="signup-container">
+            
+            {/* Rastro de migas de pan (Breadcrumbs) */}
+            <p className="breadcrumbs">Inicio &gt; Mi cuenta &gt; Crear cuenta</p> 
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Nombre"
-          onChange={handleChange}
-          required
-        />
+            <h2>Crear cuenta</h2>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          onChange={handleChange}
-          required
-        />
+            <form onSubmit={handleSubmit}>
+                
+                {/* Nombre y apellido */}
+                <label className="form-group-label">Nombre y apellido</label>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="ej: Maria Torres"
+                    onChange={handleChange}
+                    required
+                />
+                
+                {/* Email */}
+                <label className="form-group-label">Email</label>
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="ej: tunombre@gmail.com"
+                    onChange={handleChange}
+                    required
+                />
+                
+                {/* Contraseña */}
+                <label className="form-group-label">Contraseña</label>
+                <input
+                    type="password"
+                    name="password"
+                    placeholder=""
+                    onChange={handleChange}
+                    required
+                />
+                
+                {/* *** EL CAMPO 'TELÉFONO' Y 'CONFIRMAR CONTRASEÑA' FUE ELIMINADO *** */}
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          onChange={handleChange}
-          required
-        />
+                {error && <p className="error">{error}</p>}
 
-        {error && <p className="error">{error}</p>}
-
-        <button type="submit">Registrarme</button>
-      </form>
+                <button type="submit">Registrarme</button>
+            </form>
+        </div>
     </div>
   );
 }

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -20,14 +19,17 @@ export async function POST(req) {
     const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!regex.test(password)) {
       return NextResponse.json(
-        { error: "La contraseña debe tener 8 caracteres, una mayúscula y un número" },
+        {
+          error:
+            "La contraseña debe tener 8 caracteres, una mayúscula y un número",
+        },
         { status: 400 }
       );
     }
 
     // 3. Validar si el email existe
     const userExists = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (userExists) {
@@ -46,11 +48,14 @@ export async function POST(req) {
         name,
         email,
         password: hashedPassword,
-        role: "cliente"
-      }
+        role: "cliente",
+      },
     });
+    const { password: _, ...userWithoutPassword } = user;
+    // -------------------------
 
-    return NextResponse.json({ user }, { status: 201 });
+    // Devolver el objeto seguro sin la contraseña
+    return NextResponse.json({ user: userWithoutPassword }, { status: 201 });
   } catch (e) {
     console.error(e);
     return NextResponse.json(

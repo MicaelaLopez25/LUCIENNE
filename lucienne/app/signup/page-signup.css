@@ -1,0 +1,125 @@
+/* --- Estilos de la estructura general (asumiendo un contenedor externo) --- */
+body {
+    background-color: #dddddd;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* Si usas la estructura recomendada con un fondo negro y barra roja */
+.page-wrapper {
+    background-color: rgb(255, 255, 255);
+    min-height: 100vh;
+}
+
+.top-header-red {
+    background-color: #ff0000; /* La barra roja superior */
+    height: 60px;
+    width: 100%;
+}
+
+/* --- Contenedor del Formulario --- */
+.signup-container {
+    background-color: #eeeeee;
+    max-width: 350px; /* Ancho del contenido */
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* --- Breadcrumbs (Ruta de navegación) --- */
+.breadcrumbs {
+    font-size: 0.85em;
+    color: #444;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px dotted #ccc; /* Línea punteada bajo el texto */
+}
+
+/* --- Título Principal --- */
+.signup-container h2 {
+    color: #ff0000; /* Texto rojo */
+    font-size: 1.8em;
+    text-transform: uppercase;
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding-bottom: 5px;
+    border-bottom: 2px dotted #ff0000; /* Línea punteada roja */
+    letter-spacing: 1px;
+    text-align: left;
+}
+
+/* --- Etiquetas de los Campos (Ej: Nombre y apellido) --- */
+.form-group-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: normal; 
+    color: #000;
+    font-size: 0.9em;
+    text-align: left;
+}
+
+/* --- Estilo de los Campos de Entrada (Inputs) --- */
+.signup-container input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px; /* Espacio entre campos */
+    border: 1px solid #ccc;
+    background-color: #e9e9e9; /* Fondo gris claro como en la imagen */
+    box-sizing: border-box;
+    font-size: 1em;
+    color: #444;
+    border-radius: 0; /* Bordes rectos */
+}
+
+/* Estilo para el texto placeholder */
+.signup-container input::placeholder {
+    color: #888;
+    font-style: italic;
+}
+
+/* --- Botón de Registro --- */
+.signup-container button[type="submit"] {
+    width: 100%;
+    padding: 15px;
+    background-color: #ff0000; /* Fondo rojo */
+    color: white; 
+    border: none;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 20px;
+    border-radius: 0;
+}
+
+.signup-container button[type="submit"]:hover {
+    background-color: #cc0000;
+}
+
+/* Estilo para mensajes de error */
+.error {
+    color: red;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+/* Estilos para el mensaje de éxito */
+.success {
+    background-color: #d4edda; /* Fondo verde claro */
+    color: #155724; /* Texto verde oscuro */
+    border: 1px solid #c3e6cb;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Opcional: Estilo para el botón deshabilitado */
+.signup-container button[type="submit"]:disabled {
+    background-color: #4CAF50; /* Un verde diferente al rojo para indicar éxito/espera */
+    cursor: default;
+    opacity: 0.8;
+}
